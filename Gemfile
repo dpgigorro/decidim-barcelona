@@ -9,6 +9,7 @@ gem "decidim-dataviz", path: "decidim-dataviz"
 gem "decidim-initiatives", DECIDIM_VERSION
 gem "decidim-sortitions", DECIDIM_VERSION
 gem "decidim-valid_auth", path: "decidim-valid_auth"
+gem "decidim-saml", path: "decidim-saml"
 
 gem "sassc", "~>1.12.0"
 

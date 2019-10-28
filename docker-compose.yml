@@ -12,8 +12,9 @@ services:
       - DATABASE_USERNAME=postgres
       - RAILS_ENV=development
       - REDIS_URL=redis://redis:6379
+      - WEBCONCURRENCY=0
     ports:
-      - 3000:9292
+      - 3000:3000
     links:
       - pg
       - redis

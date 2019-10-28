@@ -53,5 +53,6 @@ Rails.application.routes.draw do
   get "/pages/faq", to: redirect("/pages/more-information")
 
   mount Decidim::Core::Engine => "/"
+  mount Decidim::Saml::Engine => "/"
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 end

@@ -37,6 +37,7 @@ ENV PATH="${BUNDLE_BIN}:${PATH}"
 ADD Gemfile Gemfile.lock /app/
 ADD ./decidim-dataviz/decidim-dataviz.gemspec /app/decidim-dataviz/decidim-dataviz.gemspec
 ADD ./decidim-valid_auth/decidim-valid_auth.gemspec /app/decidim-valid_auth/decidim-valid_auth.gemspec
+ADD ./decidim-saml/decidim-saml.gemspec /app/decidim-saml/decidim-saml.gemspec
 RUN gem install bundler:2.0.1
 RUN bundle install
 
