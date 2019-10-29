@@ -2,7 +2,7 @@
 
 require 'rails'
 require 'active_support/all'
-require 'devise_saml_authenticatable'
+require 'omniauth-saml'
 
 module Decidim
   module Saml
@@ -10,44 +10,35 @@ module Decidim
 
       isolate_namespace Decidim::Saml
 
-      routes do
-        devise_scope :user do
-          match(
-            "/users/saml/sign_in",
-            to: "/devise/saml_sessions#new",
-            via: [:get]
-          )
+      initializer "decidim_saml" do
+        # next unless Decidim::Saml.configured?
 
-          match(
-            "/users/saml/auth",
-            to: "/devise/saml_sessions#create",
-            via: [:post]
-          )
+        Decidim::Saml::Engine.add_saml
+
+        ActiveSupport::Reloader.to_run do
+          Decidim::Saml::Engine.add_saml
         end
       end
 
-      initializer 'decidim_saml.devise_with_saml' do
-        ::Devise.setup do |config|
-          $callback = Rails.env.development? ? 'http://localhost:3000' : ENV['CALLBACK_ADDRESS']
-
-          config.saml_create_user = true
-          config.saml_update_user = true
-          config.saml_default_user_key = :email
-          config.saml_session_index_key = :session_index
-          config.saml_use_subject = true
-          config.idp_settings_adapter = nil
-          config.saml_configure do |settings|
-            settings.assertion_consumer_service_url     = "#{$callback}/users/saml/auth"
-            settings.assertion_consumer_service_binding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
-            settings.name_identifier_format             = "urn:oasis:names:tc:SAML:2.0:nameid-format:transient"
-            settings.issuer                             = "#{$callback}/users/saml/metadata"
-            settings.authn_context                      = ""
-            settings.idp_slo_target_url                 = ""
-            settings.idp_sso_target_url                 = "https://aspgems-dperez.okta.com/app/aspgemsorg511359_pruebadecidim_1/exk1oj3ycuyvRClrc357/sso/saml"
-            settings.idp_cert_fingerprint               = '4F:99:F2:69:3B:F8:BD:1E:F2:15:09:10:2F:C5:5A:86:9D:4F:CA:83:1A:05:00:67:78:93:23:87:6E:06:35:02'
-            settings.idp_cert_fingerprint_algorithm     = 'http://www.w3.org/2000/09/xmldsig#sha256'
+      initializer "decidim_saml.setup", before: "devise.omniauth" do
+        # Configure the SAML OmniAuth strategy for Devise
+        if Rails.application.secrets.dig(:omniauth, :saml).present?
+          ::Devise.setup do |config|
+            config.omniauth :saml,
+                            idp_cert_fingerprint: Rails.application.secrets.omniauth[:saml][:idp_cert_fingerprint],
+                            idp_sso_target_url: Rails.application.secrets.omniauth[:saml][:idp_sso_target_url],
+                            strategy_class: ::OmniAuth::Strategies::SAML
           end
+        end
+      end
 
+      def self.add_saml
+        # Add :saml to the Decidim omniauth providers
+        providers = ::Decidim::User::OMNIAUTH_PROVIDERS
+        unless providers.include?(:saml)
+          providers << :saml
+          ::Decidim::User.send(:remove_const, :OMNIAUTH_PROVIDERS)
+          ::Decidim::User.const_set(:OMNIAUTH_PROVIDERS, providers)
         end
       end
 

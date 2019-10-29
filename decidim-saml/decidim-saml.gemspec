@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.test_files = Dir['spec/**/*']
 
   s.add_dependency 'decidim-core'
-  s.add_dependency 'devise_saml_authenticatable'
+  s.add_dependency 'omniauth-saml'
 
   s.add_development_dependency 'decidim-dev'
 end
